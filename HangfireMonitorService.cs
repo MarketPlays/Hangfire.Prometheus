@@ -5,8 +5,8 @@ namespace Hangfire.Prometheus
 {
     public class HangfireMonitorService : IHangfireMonitorService
     {
-        private const string retrySetName = "retries";
-        private JobStorage _hangfireJobStorage;
+        private const    string     RETRY_SET_NAME = "retries";
+        private readonly JobStorage _hangfireJobStorage;
 
         public HangfireMonitorService(JobStorage hangfireJobStorage)
         {
@@ -20,7 +20,7 @@ namespace Hangfire.Prometheus
             using (IStorageConnection storageConnection = _hangfireJobStorage.GetConnection())
             {
 
-                long retryJobs = storageConnection.GetAllItemsFromSet(retrySetName).Count;
+                long retryJobs = storageConnection.GetAllItemsFromSet(RETRY_SET_NAME).Count;
 
                 return new HangfireJobStatistics
                 {

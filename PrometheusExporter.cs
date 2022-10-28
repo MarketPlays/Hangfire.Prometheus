@@ -5,28 +5,30 @@ namespace Hangfire.Prometheus
 {
     public class HangfirePrometheusExporter : IPrometheusExporter
     {
-        private readonly IHangfireMonitorService _hangfireMonitorService;
+        private readonly IHangfireMonitorService    _hangfireMonitorService;
         private readonly HangfirePrometheusSettings _settings;
-        private readonly CollectorRegistry _collectorRegistry;
-        private readonly Gauge _hangfireGauge;
+        private readonly Gauge                      _hangfireGauge;
 
-        private readonly string _metricName = "hangfire_job_count";
-        private readonly string _metricHelp = "Number of Hangfire jobs";
-        private readonly string _stateLabelName = "state";
+        private const string METRIC_NAME     = "hangfire_job_count";
+        private const string METRIC_HELP     = "Number of Hangfire jobs";
+        private const string STATE_LABEL_NAME = "state";
 
-        private readonly string _failedLabelValue = "failed";
-        private readonly string _enqueuedLabelValue = "enqueued";
-        private readonly string _scheduledLabelValue = "scheduled";
-        private readonly string _processingLabelValue = "processing";
-        private readonly string _succeededLabelValue = "succeeded";
-        private readonly string _retryLabelValue = "retry";
+        private const string FAILED_LABEL_VALUE     = "failed";
+        private const string ENQUEUED_LABEL_VALUE   = "enqueued";
+        private const string SCHEDULED_LABEL_VALUE  = "scheduled";
+        private const string PROCESSING_LABEL_VALUE = "processing";
+        private const string SUCCEEDED_LABEL_VALUE  = "succeeded";
+        private const string RETRY_LABEL_VALUE      = "retry";
 
         public HangfirePrometheusExporter(IHangfireMonitorService hangfireMonitorService, HangfirePrometheusSettings settings)
         {
             _hangfireMonitorService = hangfireMonitorService ?? throw new ArgumentNullException(nameof(hangfireMonitorService));
-            _settings = settings;
-            _collectorRegistry = settings.CollectorRegistry;
-            _hangfireGauge = Metrics.WithCustomRegistry(_collectorRegistry).CreateGauge(_metricName, _metricHelp, _stateLabelName);
+            _settings               = settings;
+
+            CollectorRegistry collectorRegistry = settings.CollectorRegistry;
+
+            _hangfireGauge = Metrics.WithCustomRegistry(collectorRegistry)
+                                    .CreateGauge(METRIC_NAME, METRIC_HELP, STATE_LABEL_NAME);
         }
 
         public void ExportHangfireStatistics()
@@ -34,12 +36,12 @@ namespace Hangfire.Prometheus
             try
             {
                 HangfireJobStatistics hangfireJobStatistics = _hangfireMonitorService.GetJobStatistics();
-                _hangfireGauge.WithLabels(_failedLabelValue).Set(hangfireJobStatistics.Failed);
-                _hangfireGauge.WithLabels(_scheduledLabelValue).Set(hangfireJobStatistics.Scheduled);
-                _hangfireGauge.WithLabels(_processingLabelValue).Set(hangfireJobStatistics.Processing);
-                _hangfireGauge.WithLabels(_enqueuedLabelValue).Set(hangfireJobStatistics.Enqueued);
-                _hangfireGauge.WithLabels(_succeededLabelValue).Set(hangfireJobStatistics.Succeeded);
-                _hangfireGauge.WithLabels(_retryLabelValue).Set(hangfireJobStatistics.Retry);
+                _hangfireGauge.WithLabels(FAILED_LABEL_VALUE).Set(hangfireJobStatistics.Failed);
+                _hangfireGauge.WithLabels(SCHEDULED_LABEL_VALUE).Set(hangfireJobStatistics.Scheduled);
+                _hangfireGauge.WithLabels(PROCESSING_LABEL_VALUE).Set(hangfireJobStatistics.Processing);
+                _hangfireGauge.WithLabels(ENQUEUED_LABEL_VALUE).Set(hangfireJobStatistics.Enqueued);
+                _hangfireGauge.WithLabels(SUCCEEDED_LABEL_VALUE).Set(hangfireJobStatistics.Succeeded);
+                _hangfireGauge.WithLabels(RETRY_LABEL_VALUE).Set(hangfireJobStatistics.Retry);
             }
             catch (Exception ex)
             {
